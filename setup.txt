@@ -1,0 +1,38 @@
+To install the app,
+
+Notes. 
+-This App is made as a standalone single file using html & vue.js
+-It must be hosted within the Coupa instance to work
+-A valid API key is required, and it is recommended to utilise api key permissions.
+
+1. Create a API key with the permisson: "API/Requisitions" > "Update Requisition Without Validation"
+2. Upload the .html file onto a Coupa PO template: https://instance.coupahost.com/purchase_order_customization
+3. Open the attachment by editing the Custom PO template you saved it in
+4. Copy the address URL ie: https://instance.coupahost.com/public_attachments/1maQR5qm?etag=f8a3e0ecb3eb28ad0e3b1ff76389e7e36956a2b9205d3cedd363f400f1362e23
+5. Replace the "etag" like this example: 
+example 1:
+https://instance.coupahost.com/public_attachments/1maQR5qm?key=your_api_key_goes_here&url=your_instance_goes_here
+example 2:
+https://instance.coupahost.com/public_attachments/1maQR5qm?12344567878942313213&url=https://instance.coupahost.com/
+
+6. You can use this link already if you want a standalone app, and either save as a browser favourite, or a URL link from the Coupa home page which you can assign content restrictions if required.
+
+7. If you want to host the app within Coupa itself, go to "Setup" > "Installed Apps"
+8. Click "Create" > "Create New IFrame App"
+9. Give it a nanem descieption, and paste the above URL with api key into the "Application URL" feild.
+10. Save
+11. Go to Setup > Menu Configuration
+12. Click "Create"
+13. Choose either secondary menu option
+14. Select "Installed App"
+15. Select your new app
+16. Give it a Display Name
+17. Save
+
+Note. You can control who has access to it from the menus by giving them a role which includes access to the menu app.
+18. Open Setup > Roles
+19. Create or edit an exisisting role
+20. Fine the name of you app and select "Show"
+21. Save
+
+22. Your ready to use the app
