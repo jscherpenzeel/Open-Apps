@@ -53,7 +53,7 @@ Instructions to install the app:
 	8. You can now test the app
 	9. Create a Coupa panel app by going to: Setup > Installed Apps > Create > Create New iFrame App
 	10. Use the app URL from above in the Application URL feild and save.
-	11. Create a Coupa menu link by go to: Setup > Menu Configuration > Create > Secondary menu, and select the Installed App you created previously and save.
+	11. Create a Coupa menu link by going to: Setup > Menu Configuration > Create > Secondary menu, and select the Installed App you created previously and save.
 	12. Open the newly created menu app and copy the browser web address URL. Menu additions use a roll permisson, which you can add to users role based access if required.
 	13. If you want to use the app from a Coupa homepage, create a homepage content with content groups applied if required, and use the URL link you saved above on your Coupa homepage. Users can then access the app via their content controled homepage links.
 
