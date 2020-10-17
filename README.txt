@@ -11,7 +11,7 @@ Input feilds used by the App:
 
 Input feilds NOT used by the App: *Must be editied within your basket before submiting for approval.
 	1. All header feilds including custom feilds
-	2. Line need by date
+	2. Line need-by-date
 	3. Line shipping methods
 	4. Line savings
 	5. Line attachments
