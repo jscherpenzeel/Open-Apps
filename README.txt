@@ -39,7 +39,7 @@ Optional URL paramenters are:
 	3. Input Row limits *default is 100 *Standard Coupa requisition line limits is 100, check with Coupa support if you need that extended, but it can effect perfomance, and not a direct relation to the purchase orde line limit
 	
 Instructions to install the app:
-	1. Save the .html file to a custom PO template of your choice. Setup > PO Customisation > Edit (*note, this makes the web app hosted within the Coupa instance is needed to work successfully)
+	1. Save the .html file to a custom PO template of your choice. Setup > PO Customisation > Edit (*note, this will allow the web app to be available within the Coupa instance and is requirement to function)
 	2. Open the saved .html file by editing the custom PO template agian, and clicking on the file
 	3. Copy the URL from the browser web address bar
 	4. Remove everything after and including the "etag=xxxxxxxxxxxxxxx" so your left with: https://yourinstance.coupahost.com/public_attachments/Nm8dTy1m?
