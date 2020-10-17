@@ -23,7 +23,7 @@ Input feilds NOT used by the App: *Must be editied within your basket before sub
 	11. Manufacturer name
 	12. Form responses
 
-A valid API key is required for the app to work.Use of key permissons is highly recommended.
+A valid API key is required for the app to function. Use of key permissons is highly recommended.
 Required permissons are:
 	1. Api/Requisitions > Update Requisition Without Validation
 	2. Api/Currencies > Index
