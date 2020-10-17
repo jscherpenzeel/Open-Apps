@@ -1,6 +1,6 @@
 Quick Requisition Entry App
 
-This all-in-one app is designed for quick entry of free text requisition line(s). The idea is to make the creation of key feilds quickly while using the standard bulk edit features within the Coupa basket to apply the remianing required feilds before sending the requisition for approval.
+This all-in-one app is designed for quick entry of free text requisition line(s) to the users current basket. The idea is to make the creation of key feilds quickly while using the standard bulk edit features within the Coupa basket to apply the remianing required feilds before sending the requisition for approval.
 
 Input feilds used by the App:
 	1. Line Description
