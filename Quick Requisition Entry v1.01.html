@@ -367,7 +367,7 @@
 						<label style="float:left; left: 25px; position: relative;">File</label>
 						<img id="downloadTemplate" @click="downloadCsvTemplate()" :src="csvFileIcon" style="position: relative; float: left; cursor: pointer; top: -3px; left: 35px;">						
 					</div>
-					<div class="grid_item">
+					<div class="grid_item" style="overflow: hidden">
 						<input type="file" id="csv_file" name="" @change="loadCSV($event)" style="color:#fff;margin-top:2px;">
 					</div>
 					<!--Action Buttons and Currency-->
