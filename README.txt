@@ -48,7 +48,7 @@ Instructions to install the app:
 		Currency Default: &cur=USD	example: https://yourinstance.coupahost.com/public_attachments/Nm8dTy1m?key=xxxxxxxxxxxxxx&cur=USD
 		Line limit: &lines=50		example: https://yourinstance.coupahost.com/public_attachments/Nm8dTy1m?key=xxxxxxxxxxxxxx&cur=USD&lines=50
 		Band Color: &color=5cb85c	example: https://yourinstance.coupahost.com/public_attachments/Nm8dTy1m?key=xxxxxxxxxxxxxx&cur=USD&lines=50&color=5cb85c
-		*note the band color uses the hash code, the same as your Coupa	Brand Colour under Company Infomation if your using one.
+		*note the band color uses the hash code, the same as your Coupa	band Colour under Company Infomation if your using one.
 	7. Reload the browser page with the new address URL with all the parameters
 	8. You can now test the app
 	9. Create a Coupa panel app by going to: Setup > Installed Apps > Create > Create New iFrame App
