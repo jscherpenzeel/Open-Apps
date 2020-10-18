@@ -27,6 +27,7 @@ A valid API key is required for the app to function. Use of key permissons is hi
 Required permissons are:
 	1. Api/Requisitions > Update Requisition Without Validation
 	2. Api/Currencies > Index
+	Note. The app will query suppliers based on the user content resitrictions. No supplier API is needed.
 	
 This is a web based all in one .html file, using vue.js as the framwork *Note, does not support older browsers like IE. The App uses the web address URL parameters to save the API key and optionial extras. This makes customizing easy while maintaining security by not hard coding the API key. Security is achived by saving the API key in the url, and adding the address link as part of a Coupa homepage link with content groups, or by using the Coupa menu config with panels apps. 
 
