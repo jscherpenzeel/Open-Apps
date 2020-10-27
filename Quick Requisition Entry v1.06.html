@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html>
+	<head>
+
+
+		<title>Quick Requisition Entry v1.06</title>
+
+		<!--
+		
+		***COMMENTS***
+		
+		*Optional varibles can be set using the address URL parameters. example: https://yourInstance.coupahost.com/public_attachments/1maVNpOK?key=X1234523423r23&color=ff0000&lines=100&cur=USD
+		*First parameter always start with: ?       example: ?key=
+		*All additional parameters start with: &		example: &color
+		*To set API key: key=      *required for app to work
+		*To set table band color, use the color hash number: color=
+		*To set input line limit: lines=    											 			
+		*To set currency default: cur=
+		*To allow commodity search: com=true
+		
+		*To add role security save the url link containing the API key to a Coupa homepage panel and use content groups to restricit who can use the application
+		*If using panel apps with menu apps, ensure you apply the menu app to the user role
+		
+		*App does not work with IE, only modern browsers
+		
+		VERSION UPDATES
+		
+		1.01	Add file CSV input		
+		1.02	Added currencies as an option
+		1.03	Change starting table row count to 15 or to max limit if < 15
+		1.04 	Added feature to paste from any table cell, populating cells right and down of origin
+					Updated Popup CSS
+					Removed Supplier as a mandatory feild
+					removed UOM "EA" to now use Coupa defult for Qty lines.
+		1.05	Fix issue with last line of paste array being removed
+		1.06	Add url parm for commodities/auto_complete
+					Add commodities/auto_complete functionality
+		
+		-->
+		
+		
+		
+		
+
+
+		<!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>-->
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+		<script src="https://unpkg.com/axios@0.19.1/dist/axios.min.js"></script>
+
+
+		
+		
+	<style>
+		/*................................................Global...............*/
+		
+		[v-cloak] {
+			display: none;
+		}		
+		* {
+			box-sizing: border-box;
+			color: #444444;
+		}
+		*:focus {
+			outline: none;
+		}
+		body {
+			background: #fff;
+			margin: 0;
+			font-family: helvetica,arial,sans-serif;
+			padding: 20px;
+		}
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+			-webkit-appearance: none;
+			margin: 0;
+		}
+		input[type="number"] {
+			-moz-appearance: textfield;
+		}
+		.right {
+			float: right;
+		}
+		.middle {
+			text-align: center;
+		}
+		.rotate {
+			animation: rotation 2s infinite linear;
+		}
+		@keyframes rotation {
+			from {
+				transform: rotate(0deg);
+			}
+			to {
+				transform: rotate(359deg);
+			}
+		}
+		#app {
+			width: 1300px;
+			margin: auto;
+		}
+		.panel {
+			width: 100%;
+			margin: 0 0 20px 0;
+		}
+		h1 {
+			font-family: "OpenSansRegular",helvetica,arial,sans-serif;
+			font-size: 28px;
+			font-weight: normal;
+		}
+		.btn {
+			display: inline-block;
+			border: 1px solid #e0e0e0;
+			border-radius: 5px;
+			color: #2e2d2e;
+			text-decoration: none;
+			font-weight: 700;
+			height: 25px;
+			line-height: 24px;
+			margin-left: 15px;
+			padding: 0 20px;
+			white-space: nowrap;
+			cursor: pointer;
+			outline: none;
+			font-size: 13px;
+		}
+		.btn_blue {
+			background-color: #268ecd;
+			color: #fff;
+		}
+		.btn_blue:hover {
+			background: #46b8e9;
+		}
+		.btn_green {
+			background: #6aaf57;
+			color: #fff;
+		}
+		.btn_green:hover {
+			background: #89d673;
+		}
+		.btn_silver {
+			background: #d1d1d1;
+		}
+		.btn_silver:hover {
+			background: #e8eae8;
+		}
+		.btn_red {
+			background: #ff2626;
+			color: #fff;
+		}
+		.btn_red:hover {
+			background: #ff5454;
+		}
+		
+		/*................................................Action Bar...........*/
+
+		.action_grid {
+			display: grid;
+			grid-template-columns: 65px 200px 80px 200px 70px 95px auto auto auto;
+			width: 100%;
+			color: #fff;
+			background: #268ECD;
+			height: 38px;
+		}
+		.grid_item {
+			padding: 6px;
+		}
+		.action_grid label {
+			color: #fff;
+			float: right;
+			line-height: 25px;
+			font-size: 14px;
+		}
+		.action_grid span {
+			color: #fff;
+			float: left;
+			line-height: 27px;
+			font-size: 14px;
+			cursor: pointer;
+		}
+		.action_grid select {
+			height: 23px;
+			line-height: 21px;
+			padding: 0 25px 0 7px;
+			vertical-align: top;
+			border: 1px solid #c9c9c9;
+			border-radius: 3px;
+			background: #fff;
+			color: #666;
+			font-size: 13px;
+			margin-top: 1px;
+			float: right;
+		}
+
+		/*................................................Tables.................*/
+
+		#dataTable {
+			width: 100%;
+			border-collapse: collapse;
+			border-spacing: 0;
+			color: #333;
+			width: 100%;
+			border: 1px solid #e9e9e9;
+		}
+		
+		#dataTable th {
+			border-bottom: 1px solid #e9e9e9;
+			white-space: nowrap;
+			vertical-align: middle;
+			background-color: #f7f7f7;
+			border-left: 1px solid #e9e9e9;
+			border-bottom: 1px solid #e9e9e9;
+			font-size: 13px;
+			color: #333;
+			padding: 5px;
+			line-height: 22px;
+			height: 20px;
+		}
+		#dataTable td {
+			vertical-align: center;
+			border: 1px solid #e9e9e9;
+			padding: 3px;
+			color: #333;
+			height: 30px;
+			padding: 3px;
+			font-size: 13px;
+			text-align: center;
+		}
+		#dataTable tr:nth-child(even) {
+			background: #f7f7f7;
+		}
+		#dataTable tr:hover {
+			background: #e9e9e9;
+		}
+		#dataTable input {
+			border: none;
+			background: transparent;
+			width: 100%;
+			height: 100%;
+		}
+		#dataTable .paste_box {
+			background: transparent; 
+			resize: none; 
+			width: 100%; 
+			border: none; 
+			height: 25px; 
+			line-height: 25px;
+			overflow:hidden;
+			font-family: helvetica,arial,sans-serif;
+		}
+
+		/*................................................Autocomplete.................*/
+
+		.autocomplete_container {
+			width: 100%;
+		}
+		.autocomplete_container input {
+			width: 100%;
+			height: 23px;
+			margin: 1px; 0 0 0;
+			line-height: 22px;
+			padding: 0 0 0 7px;
+			vertical-align: top;
+			color: #666;
+			font-size: 13px; 
+			background: #fff;
+      border: 1px solid #c9c9c9;
+			border-radius: 3px;
+		}
+		.autocomplete_container ul {
+			position: relative;
+			list-style-type: none;
+			background: #fff;
+			margin: 0 0 0 1px;
+			padding: 0px;
+			font-size: 13px;
+			border: solid 1px grey;
+			width: 100%;
+			z-index: 999;
+		}
+		.autocomplete_container li:hover {
+			color: orange;
+			text-decoration: underline;
+			cursor: pointer;
+		}
+		.autocomplete_container li {
+			padding: 3px;
+			font-size: 13px;
+			z-index: 999;
+		}
+		.autocomplete_spinner {
+			position: relative;
+			left: -2px;
+			top: -22px;
+			float: right;
+		}
+		.table_header_grid label {
+			color: #fff;
+			float: right;
+			line-height: 25px;
+		}
+
+		/*................................................Popups.................*/
+
+		.popup {
+			height: 100vh;
+			width: 100hh;
+			z-index: 9995;
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			background-color: rgba(81, 81, 81, 0.6);
+			overflow: auto;
+		}		
+		.popup .popupContents {
+			overflow-y: auto;
+			margin: auto;
+			margin: auto;
+			width: 550px;		
+			border-radius: 5px;
+			background: #fff;
+			position: relative;
+			overflow: auto;	
+			top: 50px;
+		}
+		.popup .popupHeader{
+			width: 100%;
+			background: #00bbff;
+			color: #fff;
+			padding: 10px;
+			font-weight: 700;
+			font-size: 17px;  
+		}
+		.popup .popupHeader h2{
+			color: #fff;
+			margin: 0;
+			padding: 0;
+			font-weight: 700;
+			font-size: 17px;  
+		}
+		.popup .popupBody{
+			width: 100%;
+			background: #fff;
+			color: ##333;
+			padding: 10px;
+			font-size: 14px;  
+		}
+		
+		.popup .popupFooter{
+			width: 100%;
+			text-align: right;
+			background: #fff;
+			color: ##333;
+			padding: 10px;
+			font-size: 14px; 
+			border-top: 1px solid rgba(221,221,221,0.5);
+		}
+		.popup .btn {
+			margin: 5px
+		}
+		.fade-enter-active, .fade-leave-active {
+			transition: opacity .5s;
+		}
+	</style>
+
+	<body>
+		<div id="app">
+			<div v-cloak>
+				<!--...............................................Page Title.............................-->
+				<div class="panel">
+					<h1><span class="blue"></span><span>Quick Requisition Entry</span></h1>
+				</div>
+				
+				<!--...............................................Admin Warning When No API Key Found....-->
+				<div v-if="api_key == '' || api_key == null" class="panel" style="border: solid 1px red; padding: 20px; border-radius: 10px">
+					<div>Warning... No API key found in address URL</div>
+				</div>
+			
+				<!--...............................................Action Bar.............................-->
+				<div class="action_grid" v-bind:style="{ 'background-color': color }">
+					<!--Supplier Autocomplete-->
+					<div class="grid_item">
+						<label style="float:right">Supplier</label>
+					</div>
+					<div class="grid_item">
+						<div class="autocomplete_container">
+							<input placeholder="Search" v-on:blur="supplier_input_clear()" v-model="supplier_input" @input="supplier_search()" :disabled="supplier_clear_text">
+							<img v-bind:src="loadingIcon" class="autocomplete_spinner rotate" v-if="supplier_spinner">
+							<ul v-if="supplier_response_popup_show">
+								<li v-for="data, i in supplier_response_array" v-on:mousedown="supplier_response_select(i)">{{ data.label }}</li>
+							</ul>
+						</div>
+            <img :src="clearIcon" style="float: right; position: relative; top: -22px; cursor: pointer; z-index: 99" v-on:click="clear_supplier()" v-if="supplier_clear_text">
+					</div>
+
+					<!--Commodity Autocomplete-->
+					<div class="grid_item">
+						<conditional v-if="show_commodities">
+							<label style="float:right">Commodity</label>
+						</conditional>
+					</div>
+					<div class="grid_item">
+						<conditional v-if="show_commodities">
+							<div class="autocomplete_container">
+								<input placeholder="Search" v-on:blur="commodity_input_clear()" v-model="commodity_input" @input="commodity_search()" :disabled="commodity_clear_text">
+								<img v-bind:src="loadingIcon" class="autocomplete_spinner rotate" v-if="commodity_spinner">
+								<ul v-if="commodity_response_popup_show">
+									<li v-for="data, i in commodity_response_array" v-on:mousedown="commodity_response_select(i)">{{ data.value }}</li>
+								</ul>
+							</div>							
+							<img :src="clearIcon" style="float: right; position: relative; top: -22px; cursor: pointer; z-index: 99" v-on:click="clear_commodity()" v-if="commodity_clear_text">
+						</conditional>
+					</div>
+          
+          <!--Currecny Selection-->
+ 					<div class="grid_item">
+						<label style="float:right">Currency</label>
+					</div>          
+          <div class="grid_item">           
+						<select v-model="selected_currency" style="float:left">
+							<option selected v-if="currency_array.length == 0">Loading...</option>
+							<option v-else v-for="data in currency_array">{{ data }}</option>
+						</select>
+          </div>           
+          
+          <!--Bulk CSV File Option-->
+					<div class="grid_item">
+            <label style="float:right">File</label>
+            <span style="float:right; cursor:pointer; padding: 0 10px 0 3px; font-size: 12px; text-decoration: underline;" id="downloadTemplate" @click="downloadCsvTemplate()">csv template</span>
+					</div>
+					<div class="grid_item" style="overflow: hidden">
+						<input type="file" id="csv_file" name="" @change="loadCSV($event)" style="color:#fff;margin-top:2px;">
+					</div>
+          
+					<!--Action Buttons-->
+					<div class="grid_item">						
+            <!--Submit Button-->
+						<button v-if="(input_array.length > 0 )" class="right btn_green btn" v-on:click="validateSupplier()" style="margin-right:10px; width: 115px" :disabled="loading_animation">
+							{{ btn_text }}
+							<img v-if="loading_animation" v-bind:src="loadingIconWhite" class="autocomplete_spinner rotate" style="left: 9px; top: 1px;">
+						</button>						
+            <button v-else class="right btn_red btn" style="margin-right:10px; width: 115px">Submit</button>            
+            <!--Reset Button-->
+						<button class="right btn_silver btn" v-on:click="reset()">Reset</button>
+					</div>        
+          
+				</div>
+				<!--...............................................Input Table.............................-->
+				<table id="dataTable">
+					<thead>
+						<tr>
+							<th style="width:50px">Line</th>
+							<th class="template" style="text-align: left">Description</th>
+							<th class="template" style="width:230px">Part Number</th>
+							<th class="template" style="width:90px">Qty</th>
+							<th class="template" style="width:90px">Price</th>
+							<th class="template" style="width:60px"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="data, index in input_array">
+							<td>{{ index +1 }}</td>
+							<td v-if="index == 0"><textarea class="paste_box" v-model="data.col_1" @paste="paste_inputs(index), objName = 'col_1', colIndex = 1 " placeholder="Optional: Paste from any table cell..."></textarea></td>
+							<td v-else><textarea class="paste_box" v-model="data.col_1" @paste="paste_inputs(index), objName = 'col_1', colIndex = 1 "></textarea></td>
+							<td><textarea class="paste_box" v-model="data.col_2" @paste="paste_inputs(index), objName = 'col_2', colIndex = 2 " ></textarea></td>
+							<td><textarea class="paste_box" v-model="data.col_3" @paste="paste_inputs(index), objName = 'col_3', colIndex = 3 " type="number"></textarea></td>
+							<td><textarea class="paste_box" v-model="data.col_4" @paste="paste_inputs(index), objName = 'col_4', colIndex = 4 " type="number"></textarea></td>
+							<td>
+								<img @click="remove_line(index)" v-bind:src="minusIcon" v-if="input_array.length > 1" style="cursor: pointer">
+								<img @click="add_line(index)" v-bind:src="plusIcon" style="cursor: pointer" v-if="(input_array.length + 1) < (max_lines)">
+							</td>			
+						</tr>
+					</tbody>
+				</table>
+			
+				<!--...............................................Resoponse Popup................................-->
+				
+				<div class="popup" v-if="showPopup">
+					<div class="popupContents">
+						<div class="popupHeader" v-bind:style="{ 'background-color': color }">
+							<h2>Success
+						</div>
+						<div class="popupBody">
+							<div style="height:60px; max-height:60px" v-if="postSuccess">Requisition {{ postResponse }} updated</div>
+							<div style="height:60px; max-height:60px" v-else>Something went wrong... Please contact your administrator for assistance</div>
+						</div>
+						<div class="popupFooter">
+							<button class="btn_silver btn" v-on:click="popupClose()">Close</button>
+							<button v-if="postSuccess" class="btn_green btn" v-on:click="reviewReq()">Review Requisition</button>
+						</div>
+					</div>
+				</div>
+				
+				<!--...............................................Missing Supplier Popup.........................-->
+				
+				<div class="popup" v-if="showPopupMissingSupplier">
+					<div class="popupContents">
+						<div class="popupHeader" v-bind:style="{ 'background-color': color }">
+							<h2>Please Confirm</h2>
+						</div>
+						<div class="popupBody">
+							<div style="height:60px; max-height:60px">Are you sure you want to submit without a supplier ?</div>
+						</div>
+						<div class="popupFooter">
+							<button class="btn_silver btn" v-on:click="popupClose()">Cancel</button>
+							<button class="btn_green btn" v-on:click="my_cart()">Ok</button>
+						</div>
+					</div>
+				</div>				
+				
+				<!--...............................................Notes..........................................-->
+				
+				<div class="panel" style="padding: 20px">
+					<div style="color: #999; font-size: 14px;"> *** For price amount only lines, keep the quantity empty </div>
+					<div style="color: #999; font-size: 14px;"> *** Rows limited to {{ max_lines - 1 }} lines </div>
+				  <div style="color: #999; font-size: 14px;"> *** Rows missing a description will be ignored when submitting </div>
+					<div style="color: #999; font-size: 14px;"> *** Use the CSV template link to download a file sample </div>
+					<div style="color: #999; font-size: 14px;"> *** When using copy & paste or file upload, ensure the column data sequence match the table headers above </div>
+					<div style="color: #999; font-size: 14px;"> *** File uploads exclude the first row of the CSV file reserved for headers. Always start your line data from the second row of your CSV file </div>
+					<div style="color: #999; font-size: 14px;"> *** Submitting will add line item(s) to your current basket </div>
+				</div>				
+			</div>
+		</div>
+	</body>
+
+	<script>
+
+		new Vue({
+			el: "#app",
+			
+			mounted() {
+				this.credentials();				
+			},
+			
+			methods: {
+				//...................................................Set Credentials...........................//
+				credentials: function () {
+					
+					//Set URL
+					this.api_url = "https://" + document.location.hostname + "/";
+					
+					//Set API Key
+					console.log(this.api_key);
+					let params = new URLSearchParams(document.location.search.substring(1));					
+					this.api_key = params.get("key");
+					
+					//***Optional, Set Table Background Color
+					if( params.get("color") ){
+						this.color = "#" + params.get("color");
+					}else{
+						this.color = "#268ECD";
+					}
+					
+					//***Optional, Set Input Line Limit
+					if( params.get("lines") ){
+						this.max_lines = parseInt( params.get("lines") ) + 1;
+					}else{
+						this.max_lines = 101;
+					}					
+					if( this.api_key != null ){
+					
+						//***Optional, Set Currency Default					
+						if( params.get("cur") ){
+							this.selected_currency = params.get("cur");
+						}else{
+							this.selected_currency = "AUD";
+						}		
+						//***Optional, Allow Commodities
+						if( params.get("com") ){							
+							if( params.get("com").toLowerCase() == 'true' ){
+								this.show_commodities = true;
+							}else if ( params.get("com").toLowerCase() == 'false' ){
+								this.show_commodities = false;							
+							}else{
+								//use default false
+							}
+						}else{
+							this.show_commodities = false
+						}						
+						this.currencies();
+						this.SetstartingRows();
+					}					
+					
+				},
+				
+				//...................................................Set Starting Table Rows..................//
+				SetstartingRows: function(){
+					var self = this;
+					if( self.max_lines > 15 ){
+						row_count = 15;
+					}else{
+						row_count = self.max_lines -1;
+					}
+					for (var i = 0; i < row_count; i++) {					
+						self.input_array.push({
+							col_1: "",
+							col_2: "",
+							col_3: "",
+							col_4: "",
+							col_5: "",
+							col_6: ""
+						});
+					}
+				},
+				
+
+				//...................................................Set Currencies...........................//
+				currencies: function () {
+					var self = this;
+					cacheDate = new Date().toISOString();
+					limit = 50;
+					offset = 0;
+					function loop () {					
+						axios({
+							method: "get",
+							url:
+								self.api_url +
+								"api/currencies?return_object=shallow&offset=" + offset +"&limit=" + limit,
+							headers: {
+								"X-COUPA-API-KEY": self.api_key,
+								dataType: "json",
+								"Content-Type": "json",
+								"X-Requested-With": "XMLHttpRequest"
+							},
+						})
+						.then((response) => {
+							//When successfull
+							for (var i = 0; i < response.data.length; i++) {
+								self.currency_array.push( response.data[i].code )
+							}
+							if( response.data.length == limit){	
+								offset = offset + limit; 
+								loop();							
+							}
+						})
+						.catch((error) => {
+								alert("Error, there is a issue with your API key. Please ensure the API key is correct and applicable permissions assigned.");
+								console.log(error);
+						})
+					}
+					loop();
+				},		
+		
+				//...................................................Button Reset App...........................//
+				reset: function () {
+					location.reload();
+				},
+				
+		
+				//...................................................Button Popup Close.........................//
+				popupClose: function () {
+					var self = this;
+					self.showPopup = false;
+					self.postSuccess = false;
+					self.postResponse = "";
+					self.showPopupMissingSupplier = false;
+				},
+		
+				//...................................................Add & Remove Input Rows....................//
+				add_line: function (index) {					
+					if( this.input_array.length < (this.max_lines -1) ){
+						this.input_array.push({						
+							col_1: "",
+							col_2: "",
+							col_3: "",
+							col_4: ""	
+						});
+					}					
+				},
+				remove_line: function (index) {
+					this.input_array.splice(index, 1);
+				},		
+		
+				//...................................................Supplier Autocomplete Search...............//
+				clear_supplier: function () {
+					var self = this;
+					self.supplier_clear_text = false;
+					self.supplier_input = "";
+					self.selected_supplier_id = "";
+					self.selected_supplier_name = "";
+				},
+				supplier_search: function () {
+					var self = this;
+					if (self.supplier_input.length > 3 && self.supplier_clear_text == false) {
+						self.supplier_response_array = [];
+						self.supplier_input_count = self.supplier_input_count + 1;
+						var current = self.supplier_input_count;
+						self.supplier_response_popup_show = false;
+						self.supplier_spinner = true;
+						clearTimeout(self.myVar);
+						self.myVar = setTimeout(
+							function () {
+								axios({
+									method: "get",
+									url:
+										self.api_url +
+										"suppliers/auto_complete?exclude_internals=true&include_onboarding=true&model=requisition_line&term=" +
+										self.supplier_input
+								})
+									.then((response) => {
+										if (current === self.supplier_input_count) {
+											self.supplier_response_array = response.data;
+											self.supplier_response_popup_show = true;
+										}
+									})
+									.finally(() => (self.supplier_spinner = false));
+							}.bind(self),
+							300
+						);
+					}
+				},
+				supplier_response_select: function (i) {
+					var self = this;
+					self.supplier_response_popup_show = false;
+					self.selected_supplier_id =
+						self.supplier_response_array[i].linked_fields.supplier_id;
+					self.selected_supplier_name = self.supplier_response_array[i].label;
+					self.supplier_clear_text = true;
+					self.supplier_input = self.supplier_response_array[i].label;
+				},
+				supplier_input_clear: function () {
+					var self = this;
+					if (self.supplier_clear_text == false) {
+						setTimeout(function () {
+							self.supplier_response_popup_show = false;
+							self.supplier_spinner = false;
+							if (self.supplier_selected_value.length != 0) {
+								self.supplier_input = self.supplier_selected_value;
+							} else {
+								self.supplier_input = "";
+							}
+						}, 100);
+					}
+				},
+
+				//...................................................Commodoty Autocomplete Search...............//
+				clear_commodity: function () {
+					var self = this;
+					self.commodity_clear_text = false;
+					self.commodity_input = "";
+					self.selected_commodity_id = "";
+					self.selected_commodity_name = "";
+				},
+				commodity_search: function () {
+					var self = this;
+					if (self.commodity_input.length > 3 && self.commodity_clear_text == false) {
+						self.commodity_response_array = [];
+						self.commodity_input_count = self.commodity_input_count + 1;
+						var current = self.commodity_input_count;
+						self.commodity_response_popup_show = false;
+						self.commodity_spinner = true;
+						clearTimeout(self.myVar);
+						self.myVar = setTimeout(
+							function () {
+								axios({
+									method: "get",
+									url:
+										self.api_url +
+										"commodities/auto_complete?allow_nonleaf=true&with_parents=true&with_translation=false&term=" +
+										self.commodity_input
+								})
+									.then((response) => {
+										if (current === self.commodity_input_count) {
+											self.commodity_response_array = response.data;
+											self.commodity_response_popup_show = true;
+										}
+									})
+									.finally(() => (self.commodity_spinner = false));
+							}.bind(self),
+							300
+						);
+					}
+				},
+				commodity_response_select: function (i) {
+					var self = this;
+					self.commodity_response_popup_show = false;
+					self.selected_commodity_id = self.commodity_response_array[i].id;
+					self.selected_commodity_name = self.commodity_response_array[i].value;
+					self.commodity_clear_text = true;
+					self.commodity_input = self.commodity_response_array[i].value;
+				},
+				commodity_input_clear: function () {
+					var self = this;
+					if (self.commodity_clear_text == false) {
+						setTimeout(function () {
+							self.commodity_response_popup_show = false;
+							self.commodity_spinner = false;
+							if (self.commodity_selected_value.length != 0) {
+								self.commodity_input = self.commodity_selected_value;
+							} else {
+								self.commodity_input = "";
+							}
+						}, 100);
+					}
+				},		
+				
+				
+				//...................................................Validate if missing supplier................//
+				validateSupplier: function(){
+					var self = this;
+					if( self.selected_supplier_id ){						
+						self.my_cart();
+					}else{
+						self.showPopupMissingSupplier = true;
+					}				
+				},
+				
+				//...................................................Source Users Current Req ID................//
+				my_cart: function () {					
+					var self = this;
+					self.showPopupMissingSupplier = false;
+					self.loading_animation = true;
+					self.btn_text = "Saving";
+					axios({
+						method: "get",
+						url: self.api_url + "/requisition_headers/edit_cart",
+						headers: {
+							cache: "true",
+							"X-Requested-With": "XMLHttpRequest"
+						}
+					}).then(function (response) {
+						var x = response.request.responseURL.split("/");
+						self.req_id = x[4];
+						self.formJson();
+					});
+				},
+		
+				//....................................................Form Json Objects............................//
+				formJson: function () {
+					var self = this;
+					var lines = [];
+					var lineObj = {};
+					self.showPopup = false;
+					self.postSuccess = false;
+					self.postResponse = "";
+		
+					for (var x = 0; x < self.input_array.length; x++) {
+					
+						if(self.input_array[x].col_1 != '' ){
+					
+			
+							//Set Currency
+							var currency = self.selected_currency;
+							var currencyObj = new Object({});
+							currencyObj["code"] = currency;
+			
+							//Set Supplier
+							var supplier = self.selected_supplier_id;
+							if (supplier != "") {
+								var supplierObj = new Object({});
+								supplierObj["id"] = supplier;
+							}							
+
+							//Set Commodity
+							var commodity = self.selected_commodity_id;
+							if (commodity != "") {
+								var commodityObj = new Object({});
+								commodityObj["id"] = commodity;
+							}							
+			
+							//Set Json			
+							var line = new Object({});
+			
+							//description json
+							var desc = self.input_array[x]["col_1"];
+							if (desc != "") {
+								line["description"] = self.input_array[x]["col_1"];
+							}
+			
+							//quantity json
+							var quantity = self.input_array[x]["col_3"];
+							if (quantity != "") {
+								line["quantity"] = quantity;
+							}
+			
+							//Price json
+							var price = self.input_array[x]["col_4"];
+							if (price != "") {
+								line["unit-price"] = price;
+							}
+			
+							//part_number json
+							var part_number = self.input_array[x]["col_2"];
+							if (part_number != "") {
+								line["source-part-num"] = part_number;
+							}
+			
+							//currency json
+							if (currency != "") {
+								line["currency"] = currencyObj;
+							}
+			
+							//Supplier json
+							if (supplier != "") {
+								line["supplier"] = supplierObj;
+							}
+
+							//Supplier json
+							if (commodity != "") {
+								line["commodity"] = commodityObj;
+							}
+		
+							lines.push(line);						
+						}
+					}
+					
+					//.............................................API PUT Update Req............................//
+					axios({
+						method: "put",
+						url:
+							self.api_url +
+							"api/requisitions/" +
+							self.req_id +
+							"/update_without_validation?return_object=limited",
+						headers: {
+							"X-COUPA-API-KEY": self.api_key,
+							dataType: "json",
+							"Content-Type": "json",
+							"X-Requested-With": "XMLHttpRequest"
+						},
+						data: {
+							"requisition-lines": lines
+						}
+					})
+						.then((response) => {
+							//When successfull
+							self.showPopup = true;
+							self.postSuccess = true;
+							self.postResponse = response.data.id;
+						})
+						.catch((error) => {
+							//When error
+							self.showPopup = true;
+							self.postSuccess = false;
+						})
+						.finally((response) => {
+							self.loading_animation = false;
+							self.btn_text = "Submit";
+						});
+				},
+		
+				//.............................................Response Popup, Go to Basket.....................//
+				reviewReq: function () {
+					window.open(
+						this.api_url + "requisition_headers/" + this.postResponse + "/edit"
+					);
+				},
+				
+				//.............................................Download CSV File Template.......................//
+				download_csv: function (csv, filename) {
+					var csvFile;
+					var downloadLink;
+					csvFile = new Blob([csv], {type: "text/csv"});
+					downloadLink = document.createElement("a");
+					downloadLink.download = filename;
+					downloadLink.href = window.URL.createObjectURL(csvFile);
+					downloadLink.style.display = "none";
+					document.body.appendChild(downloadLink);
+					downloadLink.click();
+				}	,	
+				export_table_to_csv: function (html, filename) {
+					var csv = [];
+					var rows = document.querySelectorAll("#dataTable tr");					
+					for (var i = 0; i < rows.length; i++) {
+						var row = [], cols = rows[i].querySelectorAll(".template");
+						for (var j = 0; j < cols.length; j++) 
+						row.push(cols[j].innerText);
+						csv.push(row.join(","));		
+					}
+					this.download_csv(csv.join("\n"), filename);
+				},
+				downloadCsvTemplate: function(){
+					var html = document.querySelector("#dataTable").outerHTML;
+					this.export_table_to_csv(html, "template.csv");
+				},
+		
+				//.............................................Copy & Paste into Table..........................//
+				paste_inputs: function (index) {
+					setTimeout(
+						function () {
+							var lines = this.input_array[index][this.objName].split("\n");
+
+							var a =  this.input_array.length; //Current Table Count
+							var b =  lines.length;            //Paste Data count
+							var c =  index ;                	//Start Row Index
+							var d =  this.max_lines -1 ;         //Max Lines				
+
+							//Create additional table rows if required
+							//When paste rows fits within max lines limit
+							if( b + c < d ){
+								var f = ( a - c );
+								var f = b - f;
+								for (let i = 0; i < f; i++) {
+									this.input_array.push({ col_1: "", col_2: "", col_3: "", col_4: "", col_5: "" });              
+								}
+							}
+							//When paste rows exceeds max lines limit
+							else{
+								var f = d - a;
+								for (let i = 0; i < f; i++) {
+									this.input_array.push({ col_1: "", col_2: "", col_3: "", col_4: "", col_5: "" });              
+								}
+							}
+							//Paste Data
+							var y = this.colIndex;
+							for (let i = 0; i < lines.length; i++, index++) {
+								var str = lines[i].split("\t");            
+								for (let j = 0; j < this.setTableColumnCount; j++) {
+									if(str[j] ){ this.input_array[index]['col_' + (y+j) ] = str[j] }       
+								}
+							}
+						}.bind(this),
+						10
+					);
+				},
+				
+				
+				//.............................................Upload CSV File..............................//
+				csvJSON(csv) {
+					var temp_array = [];
+					var self = this;
+					function csvToArray(text) {
+						let p = "",
+							row = [""],
+							ret = [row],
+							i = 0,
+							r = 0,
+							s = !0,
+							l;
+						for (l of text) {
+							if ('"' === l) {
+								if (s && l === p) row[i] += l;
+								s = !s;
+							} else if ("," === l && s) l = row[++i] = "";
+							else if ("\n" === l && s) {
+								if ("\r" === p) row[i] = row[i].slice(0, -1);
+								row = ret[++r] = [(l = "")];
+								i = 0;
+							} else row[i] += l;
+							p = l;
+						}
+						return ret;
+					}
+					temp_array = csvToArray(csv);
+					temp_array.pop();
+					this.input_array = [];
+					for (let i = 1; i < this.max_lines; i++) {
+						this.input_array.push({
+							col_1: temp_array[i][0],
+							col_2: temp_array[i][1],
+							col_3: temp_array[i][2],
+							col_4: temp_array[i][3],
+							col_5: temp_array[i][4],
+							col_6: temp_array[i][5]
+						});
+					}
+				},
+				loadCSV(e) {
+					var self = this;
+					if (window.FileReader) {
+						var reader = new FileReader();
+						reader.readAsText(e.target.files[0]);
+						reader.onload = function (event) {
+							var csv = event.target.result;
+							self.parse_csv = self.csvJSON(csv);
+						};
+						reader.onerror = function (evt) {
+							if (evt.target.error.name == "NotReadableError") {
+								alert("Canno't read file !");
+							}
+						};
+					} else {
+						alert("FileReader are not supported in this browser.");
+					}
+				}
+			},
+		
+			data: {
+				// Input Component
+				api_url: "",
+				api_key: "",
+				req_id: "",
+		
+				//Supplier Autocomplete Search
+				supplier_input: "",
+				supplier_selected_value: "",
+				supplier_spinner: false,
+				supplier_response_popup_show: false,
+				supplier_response_array: [],
+				supplier_input_count: 1,
+				selected_supplier_name: "",
+				selected_supplier_id: "",
+				supplier_clear_text: false,
+				
+				
+	
+				//Commododity Autocomplete Search
+				show_commodities: false, // URL param used to make commodity active or not
+				commodity_input: "",
+				commodity_selected_value: "",
+				commodity_spinner: false,
+				commodity_response_popup_show: false,
+				commodity_response_array: [],
+				commodity_input_count: 1,
+				selected_commodity_name: "",
+				selected_commodity_id: "",	
+				commodity_clear_text: false,				
+		
+		
+		
+				postResponse: "", //Successfull Response Req ID
+				selected_currency: "Loading...", //Starting Currency
+				btn_text: "Submit", // Post button text
+				color: "", // Set Table Band Color
+				currency_array: [], //Placeholder for currencies
+				max_lines: 101, //Sent max table line limit
+				objName: "", //For cell model of past function
+				colIndex: "", //For cell index of past function
+				setTableColumnCount: 4, //Sets the numbr of colums to add during paste function
+		
+				// Show or Hide
+				loading_animation: false,
+				
+				showPopup: false,		
+				postSuccess: false,
+				showPopupMissingSupplier: false,
+		
+				//Data array
+				input_array: [],
+		
+				// Images Base64
+				
+				loadingIcon:					"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAACQ0lEQVQ4jbWUTUiUURSGn3Nn/DRIwtAKJCoxkRmthRoWqaOpCzftiujHIChchlFIm9mNm9q0C4qIbGEoFUTUYmYaw0awIH8bpEICKxcK1pAzo/e0CCU0dYbq3d1zzvtw3rO48I8l6zX9igkO13pdbnYCoK7JkCc0hqAZAZvfHtq2YJzLavQMSsGK9leEWw7Ja8+8r2Y2BB4Zrmuyhi6UApQRMfLIqp1AjBilVNGjQCkwpSLHw97wyzWBvjFfo1h9AsRVtS1cFuleGc+vmPBo7WlBbgAuUW0Klkf6VwF9MV++pHQcEMTUhbyh0bXuBFA/VF+BsUGEbznOvOfp3oE5ALM8kbJXgXwR2jaCAYT2hV6jehGlcD6R075UNwAVgxVZgrSKMBz0vniwEWxJdWWRO8AHhHPor7QGIHdTrhfIU+VhujAAv2AVfYxS2DDSUATgBnD/cH9cdBYrNVsnMwECOIsLgZRk30s4iellYGNeEclkAkuScIbA5/v7p4HppbcBSCYTxQKDxjpXMt1wpQzA9nj2EDADtPjVb9a3pAG8UHkzpcJdAY8r9rH1r4EA1m0DwBRWZtMxxnSgJqbRnlHtL15zqPP9+S0A978ETnR9DpxV1TV/o3GNRt9pND6m0erf66sMXZOBPBx5A+xGmVCjnad2dNwOf+9tMtY2I+yp2TxybIKWwwvYpEeqo3+MvKSTuzpms1zz5aIaQMgSaw4CGLXtCJeAqr54WVmJHIishKWl7k/XtwKE4z1VfXO9Jeud4b/oJ3Mz5DfPciz6AAAAAElFTkSuQmCC",
+				
+				loadingIconWhite:					"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAABU0lEQVQ4jbWTu0oDURCG/7OYTg0JcRuxEREhYBMEEbQytWkkWKl5EwttIvgA1nYKauUDWFiLWigiARVZL6BgYeNnM4ElbvaC6zQDc/n+OcMZKWdzcUnAk1SVNGahjqQr5xyZVAAf2AYCftsTsAmUU00I1CXtSRqRdCHpSNKN1U5JWjL/KKnpnDuNm2wR+ALegCYQJegBq8AH8AnM9YNVgGfgBagmbEVADXgH7oHhqIId29FyEizU07Kejd5EwZ55nhZmfR5wa1M6SfIsV5VUknSYBeic+5Z0LGlU0nhYqWg7qWQBWq9vvUOSNJAVEDFlICnoVanZctt/FegCC8ArcGnnlgu0+23W8wL6wAPQSFk/DxwAE3FFRfMrwFrU6YVqz+z0ZpOUS8CdPf8aaFm8DrSBffvQC4mwEHQQ2DLwrsVOTKQDTKcC9YGXzc8Ak3Fr+Bf7AWdMVtH17nRoAAAAAElFTkSuQmCC",
+					
+				closeIcon:					"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAABmJLR0QA/wD/AP+gvaeTAAABuUlEQVRIie2VQW7TQBSGv+fmBrBAPcecg1KUKkKKRDbxUDgOqNU424YqhQUXmU2lUtEFIPUUlVIeC9xo5MzzuBKrKv/Gssf+v5l/3jzDTjs9NYk1UNf1EXAK3AEfmqb5NsRwPp8fisgJMBKR4xDC19x7Vc+EToBnwD7wxXs/KUG99xMRuQBeAM9V9dR61wIr8Ce5H6nqWR/cez9R1TNglDy+fywYETkG1kPgBnQtIu8t/z1rIMZ47Zy7Bl4nE6yAQ+fczxjjJWxqYdmB3qvqrGmaC3Nh1kCymrGqnneNRWSmqnfA5wz07WKxWPb5FsEtPBtle+3GOw0hrEqeZtSpYoxXRuxpjTzEez7EcxC4hX/PwFNoMd5UZlXnpKrm1lRVNWjbHjR4xW31dgtpwwUO0mr/L+D27HaPzJp/TSbd85fOuZsY41XJsxh1XddHuY6kqjMRecN2k1l676cl394VG/FuCskouEGxm2Dv/QGwInNO0yPTwm+AV2zHfhlj/JHzN6NW1U85aK45hBBWIjJlO/aPln/fHqdpFDuSBX80uP073QK/RGQ8pA228DHwG7hV1Xelb3ba6enoL4uL30jYD4oRAAAAAElFTkSuQmCC",
+
+				minusIcon:					"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAABqElEQVQ4ja2UwWoTURiFv3NnaKOtC6FNasD4AmLpQlsQqcsWChVx2UfwAbRPUJfSx3AnFHRXXM1CIfUJ4uAwzHQxFtKYBDq/C9OmaTM60ZzdPff+3z2Xe+8vCmSLi/N43iawilkNACkBAs7OPuj4uD2uTtdAjcZt+v3XwEvgRsF+P4F9Zmb2FIZZIdCq1Qc49x64V5R8dHeLcO6Z4vjzNaDV6yvk+SdgvhRsqDae90RR1LwADo55BNydEHaukEplWa3WDwdAv7/7HzCABt3uKwDZwsItfD+h+ALKqoNZ1eH7m1OAAdzEuQ0feDhib23B+no5xOEhHBwMx2aPfKQ6ZkNzbQ12dsoBu92rwLojz624YkJJ5iPFI2YQwOxsOUAQXHVi2dLSC+DdNAIiPdegCaRM69kMusb+FNK9VZKcXv56TaDxj7hv9HrLyrITB6AwzPC8bWBsj/uL2uT5trLsBMBdJI6iJnn+GGhNAPuO9FRpenRuuMuzStOvVCorwBug8wdQB2mPXu++4vjLCKOowmq1OZzbwGwVszu/VytGCsjzj0qS03F1vwBoJpLT6fb98QAAAABJRU5ErkJggg==",
+				
+				plusIcon:					"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAACPUlEQVQ4ja2UQU8TQRTHf2/YGqAV02hCJLEYLiRS2kK1RMXIAREkMRw8+B3UePCCJh6MFzwSvomJBFoTCBCtCtoWqiZexGAaL1SRlrClOx6wm7ZsCTX+T/t/8+a372VmnlBDXekBj9pxjQj0aS2tACL6B1rixWZzJt01v+20T6oD3alRr+wWHiLcBZpq/G9HRKYslzGxGniRrQn0rwwHlC4+B2mvVXmVvltKj631xpYPAIPvBnu0qAXAc0RYSdvK0lcSkVjCBnanRr1iFpLAmers696rRFpCAMS33hPLLjpBv6kGM5jomf9pAIhZeOQEA7h04jxjJ4dsXwPo00XXODCuOpduHgfuHL1DZ2nkXiA55FaNTbsj1D7NetSMKcOG1vpCeXTQ28/FlrDtQ+5z9nevx8/j9vu2f721wsvsku1FETGAtnJg2NPNrVM3HEvoaPTR0eizfcEqVAAtS7cpAV1vb7UkSmtDQ6Y8uJr7TDS7YHu/u5O2Y60AbOxm+Jj/Yq+lcp8qgaiMgeZN+XuZ3pxjenPO9k/OPrCvTfz3B56uTx5SoxVXxWZzBtiptz0H5bUhUZXumt8Wkan/AJxMBaM5A8ByGRNiFm4DvuqsV7+W2dN7wP7Tc5Zed6GfQdlwCL29FrKULPIPw6GopD/dO5sEUKVoIhJLWKIuA1/rgG1oYaAEqwACrIVnUqrB7JH98vOHgPIaJlxY/tVwdKV84cDELimQHHJjyjDoPg2n/yZnRKm4NqzZVDCac9r3BzVpyDimYhFNAAAAAElFTkSuQmCC",				
+
+				clearIcon:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAABaUlEQVQ4jdWUsW7CMBCGc5Yw2Il4kQixhAwMXehSqkIfpd3oW7UwVJWKLIGUwZgJ8SY4GZB8HVpHxgmhEkv7bz47n/873yUI/p2klAMhROfSOSFER0o58OPEXWy32ydCiIyi6GO/30fnYFmWsW63uyCESKXUzN0D1xkhRNo1Ii4BYJIkSe5+oJTiiDgHgJGNGWPSNE03Jw611jtEXJY3AYwQca6U4k0wRFxqrXcVhzaVdrs9R8RbJ7xmjI2LojA1sBWldNzv93UtsMmFdX2pJBVgg9NSiLjinN/HcXzw92qBTdAmWBB4beOKUgrGmMqFAHDWxFmHdXX0tGaMjX+V8rWPcpJylmUMAN781uCcPx6PxwcA+CydfPfpuz9RJVAI0Wm1Wgv3EX5c3MVxfBgOhwUiTr3mv8nz/NWd/RIYhmHvUkpJkuQAMPEnKgzDXgWYpukGAJ5tmpTSqV8fC/XSf7FzXKtrf19/X1+KSPINu3sbnAAAAABJRU5ErkJggg==", 
+			
+			}
+		});
+
+	</script>
+</html>
