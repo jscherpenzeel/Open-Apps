@@ -8,6 +8,7 @@ Input feilds used by the App:
 	3. Line Price
 	4. Line Quantity
 	5. Line UOM *applicable when quanitity is used. *Defaults to your instances default UOM code. 
+	6. Line Commodity *Optional when using URL params below.
 
 Input feilds NOT used by the App: *Must be editied within your basket before submiting for approval.
 	1. All header feilds including custom feilds
@@ -48,6 +49,7 @@ Instructions to install the app:
 	6. Add any optional extras to the URL if required.
 		Currency Default: &cur=USD	example: https://yourinstance.coupahost.com/public_attachments/Nm8dTy1m?key=xxxxxxxxxxxxxx&cur=USD
 		Line limit: &lines=50		example: https://yourinstance.coupahost.com/public_attachments/Nm8dTy1m?key=xxxxxxxxxxxxxx&cur=USD&lines=50
+		Commodity Option: &com=true	example: https://yourinstance.coupahost.com/public_attachments/Nm8dTy1m?key=xxxxxxxxxxxxxx&cur=USD&lines=50&com=true
 		Band Color: &color=5cb85c	example: https://yourinstance.coupahost.com/public_attachments/Nm8dTy1m?key=xxxxxxxxxxxxxx&cur=USD&lines=50&color=5cb85c
 		*note the band color uses the hash code, the same as your Coupa	band Colour under Company Infomation if your using one.
 	7. Reload the browser page with the new address URL with all the parameters
@@ -59,3 +61,17 @@ Instructions to install the app:
 	13. If you want to use the app from a Coupa homepage, create a homepage content with content groups applied if required, and use the URL link you saved above on your Coupa homepage. Users can then access the app via their content controled homepage links.
 
 ****ALLWAYS TEST BEFORE USING IN YOUR PRODUCTION INSTANCE****
+
+VERSION UPDATES
+1.01	Added file CSV input		
+1.02	Added currencies as an option
+1.03	Change starting table row count to 15 or to max limit if < 15
+1.04 	Added feature to paste from any table cell, populating cells right and down of origin
+	Updated Popup CSS
+	Removed Supplier as a mandatory feild
+	removed UOM "EA" to now use Coupa defult for Qty lines.
+1.05	Fix issue with last line of paste array being removed
+1.06	Added url parm for commodities/auto_complete
+	Added optional commodities/auto_complete functionality
+
+
