@@ -73,5 +73,6 @@ VERSION UPDATES
 1.05	Fix issue with last line of paste array being removed
 1.06	Added url parm for commodities/auto_complete
 	Added optional commodities/auto_complete functionality
+1.07	Use enforce leave node when applicable on commdoties
 
 
